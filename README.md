@@ -1,87 +1,83 @@
 # 📊 Real-Time Infrastructure Telemetry Dashboard
 
-An enterprise-ready, real-time system monitoring dashboard built with **Node.js**, **Express**, **WebSockets**, **React**, and **Docker**.
+A lightweight, real-time telemetry and infrastructure monitoring system built with WebSockets. Streams live host server metrics—such as CPU utilization, RAM consumption, and active Docker container states—directly to a responsive dark-mode dashboard.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)
-![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)
-![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
+<p align="center">
+  <img src="./assets/dashboard-preview.png" alt="System Telemetry Dashboard Preview" width="100%" />
+</p>
 
 ---
 
-## 🚀 Features
+## ⚡ Key Features
 
-- **Bi-Directional WebSockets:** Live streaming CPU and RAM metrics with minimal overhead using `ws`.
-- **Interactive Visualizations:** Historical telemetry buffering visualized via streaming area charts powered by `Recharts`.
-- **Docker Socket Integration:** Real-time container discovery and monitoring (CPU %, Memory usage, Status, Container ID) directly from the host system daemon via system socket mounting.
-- **Production-Ready Containerization:** Multi-stage Docker builds serving the React frontend through an optimized Nginx server and backend via Node Alpine environment.
+* **Real-Time Telemetry Streaming:** Instant, low-latency metric pushes via WebSockets (`Socket.IO`) without polling overhead.
+* **Live Hardware Metrics:** Visual representation of CPU load and system memory usage with historic time-series graphs.
+* **Docker Engine Integration:** Direct read-access to the Docker daemon socket (`/var/run/docker.sock`) to list running containers, CPU %, and memory usage.
+* **Modern Dark UI:** Responsive dashboard UI built using React, Tailwind CSS, and Recharts.
 
 ---
 
 ## 🛠️ Tech Stack
 
-### **Backend**
-- **Runtime:** Node.js (v20+) with TypeScript
-- **Framework:** Express & Native WebSockets (`ws`)
-- **System Metrics:** `systeminformation`
-
-### **Frontend**
-- **Framework:** React 18 + Vite with TypeScript
-- **Styling:** Tailwind CSS + Lucide Icons
-- **Data Visualization:** Recharts
-
-### **DevOps & Orchestration**
-- **Containers:** Docker & Docker Compose
-- **Web Server:** Nginx (Alpine)
+* **Backend:** Node.js, Express, Socket.IO, `systeminformation`.
+* **Frontend:** React, TypeScript, Recharts, Lucide Icons, Tailwind CSS, Vite.
+* **Infrastructure & Containerization:** Docker, Docker Compose, Docker Socket Integration.
 
 ---
 
-## 📦 Getting Started
+## 🚀 Quick Start with Docker Compose
+
+The complete stack (Backend Telemetry Collector + Frontend Dashboard) can be launched using a single Docker Compose command on any operating system (Linux, macOS, Windows).
 
 ### Prerequisites
+* [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/install/) installed and running (via Docker Engine, Docker Desktop, or any equivalent container runtime).
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
-- [Node.js](https://nodejs.org/) (v20+) _(Only if running locally without Docker)_.
+### Deployment:
+```bash
+# 1. Clone the repository
+git clone [https://github.com/SnakeJuice/infra-monitoring-dashboard.git](https://github.com/SnakeJuice/infra-monitoring-dashboard.git)
+cd infra-monitoring-dashboard
 
-### Running with Docker Compose (Recommended)
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/SnakeJuice/infra-monitoring-dashboard.git
-   cd infra-monitoring-dashboard
-   ```
-
-2. Spin up the entire stack with a single command:
-   ```bash
-   docker compose up --build
-   ```
-
-3. Access the dashboard:
-   - **Frontend Dashboard:** [http://localhost:3000](http://localhost:3000)
-   - **Backend Health Check:** [http://localhost:4000](http://localhost:4000)
-
----
-
-## 📂 Project Structure
-
-```text
-infra-monitoring-dashboard/
-├── client/                 # Vite + React + Tailwind Frontend
-│   ├── src/
-│   │   ├── App.tsx         # Real-time dashboard UI & Recharts stream
-│   │   └── index.css
-│   └── Dockerfile          # Multi-stage build (Node build -> Nginx serve)
-├── server/                 # Express + WebSockets Backend
-│   ├── src/
-│   │   └── index.ts        # Telemetry collector & WebSocket emitter
-│   └── Dockerfile          # Node.js Alpine container environment
-├── docker-compose.yml      # Service orchestration & Docker socket binding
-└── README.md
+# 2. Launch the dashboard stack
+docker compose up --build
 ```
 
+### Exposed Services:
+* 🎨 **Dashboard Web UI:** [http://localhost:3000](http://localhost:3000)
+* ⚡ **Telemetry API Server:** [http://localhost:4000](http://localhost:4000)
+
+> **Note for Docker users:** On Linux systems, make sure your user has permissions to access `/var/run/docker.sock` if you run into container socket access issues.
+
 ---
 
-## 📄 License
+## 💻 Local Development
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+To run and modify the project locally with hot reloading enabled:
+
+1. **Start the Backend Collector Server:**
+   ```bash
+   cd server
+   npm install
+   npm run dev      # Server starts on http://localhost:4000
+   ```
+
+2. **Start the Frontend Application:**
+   ```bash
+   cd client
+   npm install
+   npm run dev      # Vite dev server starts on http://localhost:5173
+   ```
+
+---
+
+## 📌 WebSockets Events API
+
+| Event Name | Direction | Payload |
+| :--- | :--- | :--- |
+| `telemetry:update` | Server ➔ Client | `{ cpu: number, ram: { used, total }, containers: [...] }` |
+
+---
+
+## 📝 License
+
+Distributed under the MIT License.
