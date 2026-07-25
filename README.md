@@ -48,7 +48,7 @@ An enterprise-ready, real-time system monitoring dashboard built with **Node.js*
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/tu-usuario/infra-monitoring-dashboard.git
+   git clone https://github.com/SnakeJuice/infra-monitoring-dashboard.git
    cd infra-monitoring-dashboard
    ```
 
