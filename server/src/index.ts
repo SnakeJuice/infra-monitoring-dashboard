@@ -9,6 +9,25 @@ const wss = new WebSocketServer({ server });
 
 const PORT = process.env.PORT || 4000;
 
+// Ruta de estado/healthcheck
+app.get('/', (_req, res) => {
+  res.json({
+    status: 'online',
+    service: 'Telemetry WebSocket Server',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Estructura tipada para la telemetría de contenedores
+interface ContainerInfo {
+  id: string;
+  name: string;
+  image: string;
+  state: string;
+  cpuPercent: number;
+  memUsageMB: string;
+}
+
 wss.on('connection', (ws) => {
   console.log('⚡ Cliente conectado al WebSocket');
 
@@ -17,20 +36,21 @@ wss.on('connection', (ws) => {
       const mem = await si.mem();
       const currentLoad = await si.currentLoad();
       
-      // Obtener información de contenedores Docker (si Docker está ejecutándose)
-      let dockerContainers = [];
+      // Tipamos explícitamente el arreglo
+      let dockerContainers: ContainerInfo[] = [];
+
       try {
         const containers = await si.dockerContainers();
-        dockerContainers = containers.map((c) => ({
-          id: c.id.substring(0, 12),
-          name: c.name,
-          image: c.image,
-          state: c.state,
+        // Le añadimos (c: any) para que TypeScript reconozca las propiedades dinámicas de Docker
+        dockerContainers = containers.map((c: any) => ({
+          id: c.id ? c.id.substring(0, 12) : '',
+          name: c.name || 'Desconocido',
+          image: c.image || 'Desconocido',
+          state: c.state || 'unknown',
           cpuPercent: c.cpuPercent ? Math.round(c.cpuPercent * 10) / 10 : 0,
           memUsageMB: c.memUsage ? (c.memUsage / 1024 / 1024).toFixed(1) : '0',
         }));
       } catch (e) {
-        // Si Docker no está corriendo localmente, devolverá array vacío
         dockerContainers = [];
       }
 
