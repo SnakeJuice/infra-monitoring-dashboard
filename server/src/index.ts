@@ -16,24 +16,45 @@ wss.on('connection', (ws) => {
     try {
       const mem = await si.mem();
       const currentLoad = await si.currentLoad();
+      
+      // Obtener información de contenedores Docker (si Docker está ejecutándose)
+      let dockerContainers = [];
+      try {
+        const containers = await si.dockerContainers();
+        dockerContainers = containers.map((c) => ({
+          id: c.id.substring(0, 12),
+          name: c.name,
+          image: c.image,
+          state: c.state,
+          cpuPercent: c.cpuPercent ? Math.round(c.cpuPercent * 10) / 10 : 0,
+          memUsageMB: c.memUsage ? (c.memUsage / 1024 / 1024).toFixed(1) : '0',
+        }));
+      } catch (e) {
+        // Si Docker no está corriendo localmente, devolverá array vacío
+        dockerContainers = [];
+      }
 
       const telemetryData = {
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toLocaleTimeString(),
         cpuLoad: Math.round(currentLoad.currentLoad),
-        memUsedGB: (mem.active / 1024 / 1024 / 1024).toFixed(2),
-        memTotalGB: (mem.total / 1024 / 1024 / 1024).toFixed(2),
+        memUsedGB: parseFloat((mem.active / 1024 / 1024 / 1024).toFixed(2)),
+        memTotalGB: parseFloat((mem.total / 1024 / 1024 / 1024).toFixed(2)),
+        memPercent: Math.round((mem.active / mem.total) * 100),
+        containers: dockerContainers,
       };
 
-      ws.send(JSON.stringify(telemetryData));
+      if (ws.readyState === ws.OPEN) {
+        ws.send(JSON.stringify(telemetryData));
+      }
     } catch (err) {
       console.error('Error al recolectar métricas:', err);
     }
   }, 2000);
 
-  ws.onclose = () => {
+  ws.on('close', () => {
     console.log('❌ Cliente desconectado');
     clearInterval(interval);
-  };
+  });
 });
 
 server.listen(PORT, () => {
